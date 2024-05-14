@@ -133,7 +133,8 @@ def pretrain(cfg: PretrainConfig) -> None:
 
     # Start =>> Build Directories and Set Randomness
     overwatch.info('"Life is like a prism; what you see depends on how you turn the glass."', ctx_level=1)
-    hf_token = cfg.hf_token.read_text().strip() if isinstance(cfg.hf_token, Path) else os.environ[cfg.hf_token]
+    # hf_token = cfg.hf_token.read_text().strip() if isinstance(cfg.hf_token, Path) else os.environ[cfg.hf_token]
+    hf_token = None
     worker_init_fn = set_global_seed(cfg.seed, get_worker_init_fn=True)
     os.makedirs(run_dir := (cfg.run_root_dir / cfg.run_id), exist_ok=True)
     os.makedirs(cfg.run_root_dir / cfg.run_id / "checkpoints", exist_ok=True)
@@ -175,16 +176,16 @@ def pretrain(cfg: PretrainConfig) -> None:
     vlm.load_from_checkpoint(cfg.stage, run_dir, pretrained_checkpoint=cfg.pretrained_checkpoint)
 
     # Get Dataset for Specified Stage
-    overwatch.info(f"Creating Dataset `{cfg.dataset.dataset_id}` => Stage: `{cfg.stage}`")
-    train_dataset, collator = get_dataset_and_collator(
-        cfg.stage,
-        cfg.dataset,
-        image_transform,
-        tokenizer,
-        prompt_builder_fn=llm_backbone.prompt_builder_fn,
-        default_image_resolution=vision_backbone.default_image_resolution,
-        padding_side=tokenizer.padding_side,
-    )
+    # overwatch.info(f"Creating Dataset `{cfg.dataset.dataset_id}` => Stage: `{cfg.stage}`")
+    # train_dataset, collator = get_dataset_and_collator(
+    #     cfg.stage,
+    #     cfg.dataset,
+    #     image_transform,
+    #     tokenizer,
+    #     prompt_builder_fn=llm_backbone.prompt_builder_fn,
+    #     default_image_resolution=vision_backbone.default_image_resolution,
+    #     padding_side=tokenizer.padding_side,
+    # )
 
     # Create Train Strategy
     overwatch.info(f"Initializing Train Strategy `{cfg.train_strategy}`")
@@ -206,6 +207,7 @@ def pretrain(cfg: PretrainConfig) -> None:
         reduce_in_full_precision=cfg.model.reduce_in_full_precision,
         worker_init_fn=worker_init_fn,
     )
+    train_dataset = [1,2]
     train_strategy.run_setup(run_dir=run_dir, n_train_examples=len(train_dataset))
 
     # Create Metrics =>> Handles on the fly tracking, logging to specified trackers (e.g., JSONL, Weights & Biases)
